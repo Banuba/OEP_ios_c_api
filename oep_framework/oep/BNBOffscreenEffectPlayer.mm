@@ -67,7 +67,7 @@
         }
     };
     
-    m_oep->process_image_async(pixelBuffer_sprt, bnb::oep::interfaces::rotation::deg0, get_pixel_buffer_callback, bnb::oep::interfaces::rotation::deg180);
+    m_oep->process_image_async(pixelBuffer_sprt, bnb::oep::interfaces::rotation::deg180, get_pixel_buffer_callback, bnb::oep::interfaces::rotation::deg180);
 }
 
 - (pixel_buffer_sptr)convertImage:(CVPixelBufferRef)pixelBuffer
@@ -181,4 +181,12 @@
         m_ep->surface_destroyed();
     }
 }
+
+- (void)surfaceChanged:(NSUInteger)width withHeight:(NSUInteger)height
+{
+    if (m_oep) {
+        m_oep->surface_changed(width, height);
+    }
+}
+
 @end
