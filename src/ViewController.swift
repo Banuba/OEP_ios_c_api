@@ -24,13 +24,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        initBNBUtilityManager()
         initBNBOffscreenEffectPlayer(
             width: renderWidth,
             height: renderHeight,
             manualAudio: false
         )
-//        rotateBNBOffscreenEffectPlayer()
+        rotateBNBOffscreenEffectPlayer()
         loadEffect()
         setUpCamera()
     }
@@ -48,56 +47,28 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     private func rotateBNBOffscreenEffectPlayer() {
-//        switch UIApplication.shared.statusBarOrientation {
-//        case .portrait:
-//            uiOrientation = .portrait
-//            effectPlayer?.surfaceChanged(renderWidth, withHeight: renderHeight)
-//        case .portraitUpsideDown: // Impossible case, at least no such event raised
-//            uiOrientation = .portraitUpsideDown
-//            effectPlayer?.surfaceChanged(renderWidth, withHeight: renderHeight)
-//        case .landscapeLeft:
-//            uiOrientation = .landscapeLeft
-//            effectPlayer?.surfaceChanged(renderHeight, withHeight: renderWidth)
-//        case .landscapeRight:
-//            uiOrientation = .landscapeRight
-//            effectPlayer?.surfaceChanged(renderHeight, withHeight: renderWidth)
-//        default:
-//            break
-//        }
+        switch UIApplication.shared.statusBarOrientation {
+        case .portrait:
+            uiOrientation = .portrait
+            effectPlayer?.surfaceChanged(renderWidth, withHeight: renderHeight)
+        case .portraitUpsideDown: // Impossible case, at least no such event raised
+            uiOrientation = .portraitUpsideDown
+            effectPlayer?.surfaceChanged(renderWidth, withHeight: renderHeight)
+        case .landscapeLeft:
+            uiOrientation = .landscapeLeft
+            effectPlayer?.surfaceChanged(renderHeight, withHeight: renderWidth)
+        case .landscapeRight:
+            uiOrientation = .landscapeRight
+            effectPlayer?.surfaceChanged(renderHeight, withHeight: renderWidth)
+        default:
+            break
+        }
     }
     
-//    private func initBNBUtilityManager() {
-////        let bundleRoot = Bundle.init(for: BNBEffectPlayer.self).bundlePath
-////        let dirs = [bundleRoot + "/bnb-resources", Bundle.main.bundlePath + "/effects"]
-//    let dirs = [ Bundle.main.bundlePath + "/bnb-resources", Bundle.main.bundlePath + "/effects"]
-//        BNBUtilityManager.initialize(
-//            dirs,
-//            clientToken: <#Place your token here#>
-//        )
-//    }
-    
     private func initBNBOffscreenEffectPlayer(width: UInt, height: UInt, manualAudio: Bool) {
-        /**
-         * This way of configuration of OEP is useful then you want to register Listeners for EP
-         */
-//        let config = BNBEffectPlayerConfiguration.init(fxWidth: Int32(width), fxHeight: Int32(height), nnEnable: .automatically , faceSearch: .good, jsDebuggerEnable: false, manualAudio: manualAudio)
-//        let ep = BNBEffectPlayer.create(config)
-//
-//        // Please note that calls like surfaceChanged should be performed via OEP instance
-//        effectPlayer = BNBOffscreenEffectPlayer.init(effectPlayer: ep!, offscreenWidth: width, offscreenHight: height)
-               // let bundleRoot = Bundle.init(for: BNBEffectPlayer.self).bundlePath
-               // let dirs = [bundleRoot + "/bnb-resources", Bundle.main.bundlePath + "/effects"]
         let dirs = [ Bundle.main.bundlePath + "/bnb-resources", Bundle.main.bundlePath + "/effects"]
         
         effectPlayer = BNBOffscreenEffectPlayer.init(width: width, height: height, manualAudio: manualAudio, token: <#Place your token here#>, resourcePaths: dirs)
-
-        /** Use this approach of OEP initialization if you care only about image processing with effect application
-         *   effectPlayer = BNBOffscreenEffectPlayer.init(
-         *       effectWidth: width,
-         *       andHeight: height,
-         *       manualAudio: manualAudio
-         *   )
-         */
     }
     
     private func loadEffect() {
