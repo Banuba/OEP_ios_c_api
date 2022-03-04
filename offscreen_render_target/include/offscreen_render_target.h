@@ -3,10 +3,7 @@
 #include <bnb/common_types.h>
 
 #include <interfaces/offscreen_render_target.hpp>
-
 #include "program.hpp"
-
-//#include <glad/glad.h>
 
 #import <OpenGLES/EAGL.h>
 #import <OpenGLES/ES3/gl.h>
@@ -26,17 +23,6 @@ class offscreen_render_target : public oep::interfaces::offscreen_render_target
 
         ~offscreen_render_target();
 
-//        void init() override;
-//        void deinit() override;
-//
-//        void surface_changed(int32_t width, int32_t height) override;
-//
-//        void activate_context() override;
-//        void prepare_rendering() override;
-//        void orient_image(interfaces::orient_format orient) override;
-//
-//        bnb::data_t read_current_buffer() override;
-//
         void* get_image();
         
         void init(int32_t width, int32_t height) override;
@@ -54,9 +40,7 @@ class offscreen_render_target : public oep::interfaces::offscreen_render_target
         void cleanPostProcessRenderingTargets();
 
         void createContext();
-      //  void destroyContext();
 
-        void loadGladFunctions();
         std::tuple<int, int> getWidthHeight(bnb::oep::interfaces::rotation orient);
 
         void setupTextureCache();

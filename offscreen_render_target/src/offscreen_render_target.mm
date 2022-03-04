@@ -3,9 +3,6 @@
 #include "opengl.hpp"
 #include "utils.h"
 
-//#include <bnb/effect_player/utility.hpp>
-//#include <bnb/postprocess/interfaces/postprocess_helper.hpp>
-
 namespace bnb
 {
 
@@ -35,7 +32,7 @@ const char* ps_default_base =
     class ort_frame_surface_handler
     {
     private:
-        static const auto v_size = static_cast<uint32_t>(bnb_image_orientation_t::BNB_DEG_270) + 1;
+        static const auto v_size = static_cast<uint32_t>(bnb::oep::interfaces::rotation::deg270) + 1;
 
     public:
         /**
@@ -45,7 +42,7 @@ const char* ps_default_base =
         */
         static const float vertices[2][v_size][5 * 4];
 
-        explicit ort_frame_surface_handler(bnb_image_orientation_t orientation, bool is_y_flip)
+        explicit ort_frame_surface_handler(bnb::oep::interfaces::rotation orientation, bool is_y_flip)
             : m_orientation(static_cast<uint32_t>(orientation))
             , m_y_flip(static_cast<uint32_t>(is_y_flip))
         {
@@ -113,7 +110,7 @@ const char* ps_default_base =
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
-        void set_orientation(bnb_image_orientation_t orientation)
+        void set_orientation(bnb::oep::interfaces::rotation orientation)
         {
             if (m_orientation != static_cast<uint32_t>(orientation)) {
                 m_orientation = static_cast<uint32_t>(orientation);
@@ -248,24 +245,17 @@ namespace bnb
 
     void offscreen_render_target::init(int32_t width, int32_t height)
     {
-//        bnb::gl::context_info::context_info();
         m_width = width;
         m_height = height;
         
         createContext();
-        
-//        runOnMainQueue([this]() {
-//            //loadGladFunctions();
-////            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-//        });
         activate_context();
         
         setupTextureCache();
         setupRenderBuffers();
         
         m_program = std::make_unique<program>("OrientationChange", vs_default_base, ps_default_base);
-        m_frameSurfaceHandler = std::make_unique<ort_frame_surface_handler>(bnb_image_orientation_t::BNB_DEG_0, false);
-
+        m_frameSurfaceHandler = std::make_unique<ort_frame_surface_handler>(bnb::oep::interfaces::rotation::deg0, false);
     }
 
     void offscreen_render_target::deinit(){
@@ -287,32 +277,12 @@ namespace bnb
         if (m_GLContext != nil) {
             return;
         }
-
-//        static std::once_flag nsGLContextOnceFlag;
-//        std::call_once(nsGLContextOnceFlag, []() {
-//            NSOpenGLPixelFormatAttribute pixelFormatAttributes[] = {
-//                NSOpenGLPFAOpenGLProfile,
-//                (pixelFormatAttributes)NSOpenGLProfileVersion4_1Core,
-//                NSOpenGLPFADoubleBuffer,
-//                NSOpenGLPFAAccelerated, 0,
-//                0
-//            };
-//
-//            NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
-//            if (pixelFormat == nil) {
-//                NSLog(@"Error: No appropriate pixel format found");
-//            }
-//            m_GLContext = [[EAGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
-//            if (m_GLContext == nil) {
-//                NSLog(@"Unable to create an OpenGL context. The GPUImage framework requires OpenGL support to work.");
-//            }
             
-            m_GLContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-            if (m_GLContext == nil) {
-                NSLog(@"Unable to create an OpenGL context. The GPUImage framework requires OpenGL support to work.");
-            }
-        
-            [EAGLContext setCurrentContext:m_GLContext];
+        m_GLContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+        if (m_GLContext == nil) {
+            NSLog(@"Unable to create an OpenGLES context. The GPUImage framework requires OpenGLES support to work.");
+        }
+        [EAGLContext setCurrentContext:m_GLContext];
     }
 
     void offscreen_render_target::activate_context()
@@ -321,26 +291,16 @@ namespace bnb
             if (m_GLContext != nil) {
                 [EAGLContext setCurrentContext:m_GLContext];
             } else {
-                NSLog(@"Error: The OGL context has not been created yet");
+                NSLog(@"Error: The OpenGLES context has not been created yet");
             }
         }
     }
 
     void offscreen_render_target::deactivate_context()
     {
-//        if ([EAGLContext currentContext] == m_GLContext) {
-//            [EAGLContext  clearCurrentContext];
-//        }
-    }
-
-    void offscreen_render_target::loadGladFunctions()
-    {
-        // it's only need for use while working with dynamic libs
-       // utility::load_glad_functions((GLADloadproc) nsGLGetProcAddress);
-
-//        if (0 == gladLoadGLLoader((GLADloadproc) nsGLGetProcAddress)) {
-//            throw std::runtime_error("gladLoadGLLoader error");
-//        }
+        if ([EAGLContext currentContext] == m_GLContext) {
+            [EAGLContext setCurrentContext:nil];
+        }
     }
 
     std::tuple<int, int> offscreen_render_target::getWidthHeight(bnb::oep::interfaces::rotation orientation)
@@ -393,9 +353,6 @@ namespace bnb
 
     void offscreen_render_target::setupOffscreenRenderTarget(CVPixelBufferRef& pb, CVOpenGLESTextureRef& texture)
     {
-//        CVReturn err = CVOpenGLTextureCacheCreateTextureFromImage(kCFAllocatorDefault, m_videoTextureCache,
-//                pb, NULL, &texture);
-        
         CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault, m_videoTextureCache, pb, NULL, GL_TEXTURE_2D, GL_RGBA, (GLsizei) m_width, (GLsizei) m_height, GL_RGBA, GL_UNSIGNED_BYTE, 0, &texture);
 
         if (err != noErr) {
@@ -508,18 +465,14 @@ namespace bnb
 
             preparePostProcessingRendering(orientation);
             m_program->use();
-            m_frameSurfaceHandler->set_orientation(bnb_image_orientation_t::BNB_DEG_0);
+            m_frameSurfaceHandler->set_orientation(orientation);
             m_frameSurfaceHandler->set_y_flip(false);
             // Call once for perf
             m_frameSurfaceHandler->update_vertices_buffer();
             m_frameSurfaceHandler->draw();
             m_program->unuse();
             glFlush();
-            m_oriented = true;
-           // return m_offscreenPostProcessingPixelBuffer;
         }
-        //return m_offscreenRenderPixelBuffer;
-        
         m_oriented = true;
     }
     
