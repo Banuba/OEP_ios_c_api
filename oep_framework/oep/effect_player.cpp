@@ -109,7 +109,8 @@ namespace bnb::oep
         full_image_holder_t * bnb_image {nullptr};
 
         using ns = bnb::oep::interfaces::image_format;
-        auto bnb_image_format = make_bnb_image_format(image, image_orientation);
+        bool require_mirroring = true;
+        auto bnb_image_format = make_bnb_image_format(image, image_orientation, require_mirroring);
         switch (image->get_image_format()) {
             case ns::bpc8_rgb:
             case ns::bpc8_bgr:
@@ -187,7 +188,7 @@ namespace bnb::oep
     }
 
     /* effect_player::make_bnb_image_format */
-    bnb_image_format_t effect_player::make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation)
+    bnb_image_format_t effect_player::make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring)
     {
         bnb_image_orientation_t camera_orient {BNB_DEG_0};
         using ns = bnb::oep::interfaces::rotation;
@@ -204,7 +205,7 @@ namespace bnb::oep
                 camera_orient = BNB_DEG_270;
                 break;
         }
-        return {static_cast<uint32_t>(image->get_width()), static_cast<uint32_t>(image->get_height()), camera_orient, false, 0};
+        return {static_cast<uint32_t>(image->get_width()), static_cast<uint32_t>(image->get_height()), camera_orient, require_mirroring, 0};
     }
 
     /* effect_player::make_bnb_pixel_format */
