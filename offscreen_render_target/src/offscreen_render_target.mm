@@ -417,38 +417,6 @@ namespace bnb
 
     void offscreen_render_target::orient_image(bnb::oep::interfaces::rotation orientation)
     {
-//        GL_CALL(glFlush());
-//
-//        if (orient.orientation == camera_orientation::deg_0 && !orient.is_y_flip) {
-//            return;
-//        }
-//
-//        if (m_program == nullptr) {
-//            std::cout << "[ERROR] Not initialization m_program" << std::endl;
-//            return;
-//        }
-//        if (m_frameSurfaceHandler == nullptr) {
-//            std::cout << "[ERROR] Not initialization m_frameSurfaceHandler" << std::endl;
-//            return;
-//        }
-//
-//        if (m_offscreenPostProcessingPixelBuffer == nullptr) {
-//            setupOffscreenPixelBuffer(m_offscreenPostProcessingPixelBuffer);
-//            setupOffscreenRenderTarget(m_offscreenPostProcessingPixelBuffer, m_offscreenPostProcessingRenderTexture);
-//        }
-//
-//        preparePostProcessingRendering();
-//        m_program->use();
-//        m_program->set_uniform("width", (int)m_width);
-//        m_program->set_uniform("height", (int)m_height);
-//        m_frameSurfaceHandler->set_orientation(orient.orientation);
-//        m_frameSurfaceHandler->set_y_flip(orient.is_y_flip);
-//        // Call once for perf
-//        m_frameSurfaceHandler->update_vertices_buffer();
-//        m_frameSurfaceHandler->draw();
-//        m_program->unuse();
-//        GL_CALL(glFlush());
-
         glFlush();
         if (orientation != bnb::oep::interfaces::rotation::deg0) {
             if (m_prev_orientation != orientation) {
@@ -471,9 +439,9 @@ namespace bnb
             m_frameSurfaceHandler->update_vertices_buffer();
             m_frameSurfaceHandler->draw();
             m_program->unuse();
+            m_oriented = true;
             glFlush();
         }
-        m_oriented = true;
     }
     
     pixel_buffer_sptr offscreen_render_target::read_current_buffer(bnb::oep::interfaces::image_format format)
