@@ -36,6 +36,8 @@ namespace bnb::oep
     private:
         bnb_image_format_t make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring);
         bnb_pixel_format_t make_bnb_pixel_format(pixel_buffer_sptr image);
+        int32_t get_optimal_time_to_sleep_on_rendering_us();
+        int32_t optimal_time_to_sleep_on_rendering_us;
 
     private:
         utility_manager_holder_t * m_utility {nullptr};

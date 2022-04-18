@@ -5,6 +5,8 @@
 #include <optional>
 #include <iostream>
 #include <algorithm>
+#include <map>
+#include <sys/utsname.h>
 
 namespace bnb::oep
 {
@@ -28,6 +30,8 @@ namespace bnb::oep
         if (m_ep == nullptr) {
             throw std::runtime_error("Failed to create effect player holder.");
         }
+
+        optimal_time_to_sleep_on_rendering_us = get_optimal_time_to_sleep_on_rendering_us();
     }
 
     /* effect_player::~effect_player */
@@ -68,9 +72,9 @@ namespace bnb::oep
     {
         if (auto e_manager = bnb_effect_player_get_effect_manager(m_ep, nullptr)) {
             bnb_effect_manager_load_effect(e_manager, effect.c_str(), nullptr);
-            std::cout << "[Error] effect manager not initialized" << std::endl;
             return true;
         }
+        std::cout << "[Error] effect manager not initialized" << std::endl;
         return false;
     }
 
@@ -178,7 +182,7 @@ namespace bnb::oep
         bnb_error * error{nullptr};
         while (bnb_effect_player_draw(m_ep, &error) < 0) {
             std::this_thread::yield();
-            std::this_thread::sleep_for(std::chrono::microseconds(35));
+            std::this_thread::sleep_for(std::chrono::microseconds(optimal_time_to_sleep_on_rendering_us));
         }
         if (error) {
             std::string msg = bnb_error_get_message(error);
@@ -232,6 +236,52 @@ namespace bnb::oep
                 break;
         }
         return fmt;
+    }
+
+    // We use sleep_for() function to wait for the result of effect_player.draw().
+    // The best time for this function depends on the power of the iPhone.
+    // So we have to choose the optimal time according to the model of the device.
+    int32_t effect_player::get_optimal_time_to_sleep_on_rendering_us(){
+        int32_t timeForA9 = 35;
+        int32_t timeForA10 = 25;
+        int32_t timeForA11 = 25;
+        int32_t timeForA12 = 10;
+
+        using namespace std::literals::string_literals;
+
+        // https://stackoverflow.com/questions/11197509/how-to-get-device-make-and-model-on-ios
+        std::map<std::string, int> machines = {
+            {"iPhone6,1"s, timeForA9},   // iPhone5S (model A1433, A1533 | GSM)
+            {"iPhone6,2"s, timeForA9},   // iPhone5S (model A1457, A1518, A1528 (China), A1530 | Global)
+            {"iPhone7,1"s, timeForA9},   // iPhone6 Plus          A8
+            {"iPhone7,2"s, timeForA9},   // iPhone6               A8
+            {"iPhone8,1"s, timeForA9},   // iPhone 6s             A9
+            {"iPhone8,2"s, timeForA9},   // iPhone 6s Plus        A9
+            {"iPhone8,4"s, timeForA9},   // iPhone SE (GSM)       A9
+            {"iPhone9,1"s, timeForA10},  // iPhone7              A10
+            {"iPhone9,2"s, timeForA10},  // iPhone7 Plus         A10
+            {"iPhone9,3"s, timeForA10},  // iPhone7              A10
+            {"iPhone9,4"s, timeForA10},  // iPhone7 Plus         A10
+            {"iPhone10,1"s, timeForA11}, // iPhone 8            A11
+            {"iPhone10,2"s, timeForA11}, // iPhone 8 Plus       A11
+            {"iPhone10,3"s, timeForA11}, // iPhone X Global     A11
+            {"iPhone10,4"s, timeForA11}, // iPhone 8            A11
+            {"iPhone10,5"s, timeForA11}, // iPhone 8 Plus       A11
+            {"iPhone10,6"s, timeForA11}, // iPhone X GSM        A11
+            {"iPhone11,2"s, timeForA12}, // iPhone XS           A12
+            {"iPhone11,4"s, timeForA12}, // iPhone XS Max       A12
+            {"iPhone11,6"s, timeForA12}, // iPhone XS Max China A12
+            {"iPhone11,8"s, timeForA12}  // iPhone XR           A12
+        };
+
+        struct utsname system_info;
+        uname(&system_info);
+        auto machine = machines.find(system_info.machine);
+        if (machine != machines.end()) {
+            return machine->second;
+        } else {
+            return timeForA12;
+        }
     }
 
 } /* namespace bnb::oep */
