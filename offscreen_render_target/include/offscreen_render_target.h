@@ -20,42 +20,38 @@ class offscreen_render_target : public oep::interfaces::offscreen_render_target
     {
     public:
         offscreen_render_target();
-
         ~offscreen_render_target();
-
-        void* get_image();
         
         void init(int32_t width, int32_t height) override;
         void deinit() override;
-        void surface_changed(int32_t width, int32_t height) override;
         void activate_context() override;
         void deactivate_context() override;
         void prepare_rendering() override;
-        void orient_image(bnb::oep::interfaces::rotation orient) override;
+        void surface_changed(int32_t width, int32_t height) override;
+        void orient_image(bnb::oep::interfaces::rotation orientation) override;
+        
         pixel_buffer_sptr read_current_buffer(bnb::oep::interfaces::image_format format) override;
         rendered_texture_t get_current_buffer_texture() override;
 
     private:
+        void setupRenderBuffers();
         void cleanupRenderBuffers();
-        void cleanPostProcessRenderingTargets();
 
         void createContext();
 
-        std::tuple<int, int> getWidthHeight(bnb::oep::interfaces::rotation orient);
+        std::tuple<int, int> getWidthHeight(bnb::oep::interfaces::rotation orientation);
 
         void setupTextureCache();
-        void setupRenderBuffers();
-
-        void setupOffscreenPixelBuffer(CVPixelBufferRef& pb);
-        void setupOffscreenRenderTarget(CVPixelBufferRef& pb, CVOpenGLESTextureRef& texture);
+        void setupOffscreenPixelBuffer();
+        void setupOffscreenRenderTarget();
         void setupOffscreenPostProcessingPixelBuffer(bnb::oep::interfaces::rotation orientation);
+
         void setupOffscreenPostProcessingRenderTarget(bnb::oep::interfaces::rotation orientation);
+        void cleanPostProcessRenderingTargets();
 
-        void preparePostProcessingRendering(bnb::oep::interfaces::rotation orient);
+        void preparePostProcessingRendering(bnb::oep::interfaces::rotation orientation);
         
-//        pixel_buffer_sptr read_current_buffer_bpc8(bnb::oep::interfaces::image_format format_hint);
-//        pixel_buffer_sptr read_current_buffer_i420(bnb::oep::interfaces::image_format format_hint);
-
+        void* get_image();
 
         uint32_t m_width{0};
         uint32_t m_height{0};
