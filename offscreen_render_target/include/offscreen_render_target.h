@@ -48,6 +48,8 @@ class offscreen_render_target : public oep::interfaces::offscreen_render_target
 
         void setupOffscreenPixelBuffer(CVPixelBufferRef& pb);
         void setupOffscreenRenderTarget(CVPixelBufferRef& pb, CVOpenGLESTextureRef& texture);
+        void setupOffscreenPostProcessingPixelBuffer(bnb::oep::interfaces::rotation orientation);
+        void setupOffscreenPostProcessingRenderTarget(bnb::oep::interfaces::rotation orientation);
 
         void preparePostProcessingRendering(bnb::oep::interfaces::rotation orient);
         

@@ -15,12 +15,11 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private let outputVideoOrientation: AVCaptureVideoOrientation = .landscapeRight // .landscapeLeft is default for output if not configured
     private let cameraPosition: AVCaptureDevice.Position = .front
     private let cameraPreset: AVCaptureSession.Preset = .hd1280x720
-    private var renderWidth: UInt = 1280
-    private var renderHeight: UInt = 720
+    private var renderWidth: UInt = 720
+    private var renderHeight: UInt = 1280
     private var loadingEffect = false
     //private var resultedImageOrientation: bnb::oep::interfaces::rotation = .deg0
     private var uiOrientation: UIInterfaceOrientation = .portrait
-    private var count: UInt = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -111,60 +110,60 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         session.startRunning()
     }
     
-//    private func getImageOrientation() -> EPOrientation {
-//        if outputVideoOrientation == .landscapeRight {
-//            if uiOrientation == .portrait {
-//                return cameraPosition == .front ? .angles270 : .angles90
-//            }
-//            else if uiOrientation == .portraitUpsideDown {
-//                return cameraPosition == .front ? .angles90 : .angles270
-//            }
-//            else if uiOrientation == .landscapeRight {
-//                return .angles0
-//            }
-//            // .landscapeRight
-//            return .angles180
-//        }
-//        else if outputVideoOrientation == .landscapeLeft {
-//            if uiOrientation == .portrait {
-//                return cameraPosition == .front ? .angles90 : .angles270
-//            }
-//            else if uiOrientation == .portraitUpsideDown {
-//                return cameraPosition == .front ? .angles270 : .angles90
-//            }
-//            else if uiOrientation == .landscapeRight {
-//                return .angles180
-//            }
-//            // .landscapeRight
-//            return .angles0
-//        }
-//        else if outputVideoOrientation == .portrait {
-//            if uiOrientation == .portrait {
-//                return .angles0
-//            }
-//            else if uiOrientation == .portraitUpsideDown {
-//                return .angles180
-//            }
-//            else if uiOrientation == .landscapeRight {
-//                return cameraPosition == .front ? .angles90 : .angles270
-//            }
-//            // .landscapeRight
-//            return cameraPosition == .front ? .angles270 : .angles90
-//        }
-//        else { // .portraitUpsideDown
-//            if uiOrientation == .portrait {
-//                return .angles180
-//            }
-//            else if uiOrientation == .portraitUpsideDown {
-//                return .angles0
-//            }
-//            else if uiOrientation == .landscapeRight {
-//                return cameraPosition == .front ? .angles270 : .angles90
-//            }
-//            // .landscapeRight
-//            return cameraPosition == .front ? .angles90 : .angles270
-//        }
-//    }
+    private func getImageOrientation() -> EPOrientation {
+        if outputVideoOrientation == .landscapeRight {
+            if uiOrientation == .portrait {
+                return cameraPosition == .front ? .angles270 : .angles90
+            }
+            else if uiOrientation == .portraitUpsideDown {
+                return cameraPosition == .front ? .angles90 : .angles270
+            }
+            else if uiOrientation == .landscapeRight {
+                return .angles0
+            }
+            // .landscapeRight
+            return .angles180
+        }
+        else if outputVideoOrientation == .landscapeLeft {
+            if uiOrientation == .portrait {
+                return cameraPosition == .front ? .angles90 : .angles270
+            }
+            else if uiOrientation == .portraitUpsideDown {
+                return cameraPosition == .front ? .angles270 : .angles90
+            }
+            else if uiOrientation == .landscapeRight {
+                return .angles180
+            }
+            // .landscapeRight
+            return .angles0
+        }
+        else if outputVideoOrientation == .portrait {
+            if uiOrientation == .portrait {
+                return .angles0
+            }
+            else if uiOrientation == .portraitUpsideDown {
+                return .angles180
+            }
+            else if uiOrientation == .landscapeRight {
+                return cameraPosition == .front ? .angles90 : .angles270
+            }
+            // .landscapeRight
+            return cameraPosition == .front ? .angles270 : .angles90
+        }
+        else { // .portraitUpsideDown
+            if uiOrientation == .portrait {
+                return .angles180
+            }
+            else if uiOrientation == .portraitUpsideDown {
+                return .angles0
+            }
+            else if uiOrientation == .landscapeRight {
+                return cameraPosition == .front ? .angles270 : .angles90
+            }
+            // .landscapeRight
+            return cameraPosition == .front ? .angles90 : .angles270
+        }
+    }
 
     func paintPixelBuffer(_ pixelBuffer: CVPixelBuffer?) {
         if let resultPixelBuffer = pixelBuffer {
@@ -173,11 +172,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             VTCreateCGImageFromCVPixelBuffer(resultPixelBuffer, nil, &cgImage)
 
             guard let cgImageSafe = cgImage else { return }
-            
-            let width = CVPixelBufferGetWidth(resultPixelBuffer)
-            let height = CVPixelBufferGetHeight(resultPixelBuffer)
 
-            let image = UIImage(cgImage: cgImageSafe, scale: 1, orientation: .left)
+            let image = UIImage(cgImage: cgImageSafe, scale: 1.0, orientation: .left)
 
             DispatchQueue.main.async {
                 self.imageView.image = image
@@ -190,7 +186,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
         if (self.loadingEffect) {
-            effectPlayer?.processImage(imageBuffer, completion: { [weak self] (resPixelBuffer) in
+            let orientation = getImageOrientation()
+            effectPlayer?.processImage(imageBuffer, inputOrientation: orientation, completion: { [weak self] (resPixelBuffer) in
                 self?.paintPixelBuffer(resPixelBuffer)
             })
         }

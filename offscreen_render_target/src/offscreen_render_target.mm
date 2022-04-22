@@ -385,6 +385,32 @@ namespace bnb
         }
     }
 
+    void offscreen_render_target::setupOffscreenPostProcessingPixelBuffer(bnb::oep::interfaces::rotation orientation){
+        auto [width, height] = getWidthHeight(orientation);
+        CFDictionaryRef empty = CFDictionaryCreate(kCFAllocatorDefault, NULL, NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFMutableDictionaryRef attrs = CFDictionaryCreateMutable(kCFAllocatorDefault, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFDictionarySetValue(attrs, kCVPixelBufferIOSurfacePropertiesKey, empty);
+        CVReturn err = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attrs, &m_offscreenPostProcessingPixelBuffer);
+        if (err != noErr) {
+            @throw [NSException exceptionWithName:NSInternalInconsistencyException
+                                           reason:@"Cannot create offscreen pixel buffer 2 for the class BNBOffscreenEffectPlayer"
+                                         userInfo:nil];
+        }
+        CFRelease(empty);
+        CFRelease(attrs);
+    }
+
+    void offscreen_render_target::setupOffscreenPostProcessingRenderTarget(bnb::oep::interfaces::rotation orientation){
+        auto [width, height] = getWidthHeight(orientation);
+        CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault, m_videoTextureCache, m_offscreenPostProcessingPixelBuffer, NULL, GL_TEXTURE_2D, GL_RGBA, (GLsizei) width, (GLsizei) height, GL_RGBA, GL_UNSIGNED_BYTE, 0, &m_offscreenPostProcessingRenderTexture);
+
+        if (err != noErr) {
+            @throw [NSException exceptionWithName:NSInternalInconsistencyException
+                                           reason:@"Cannot create GL texture 2 from pixel buffer for the class BNBOffscreenEffectPlayer"
+                                         userInfo:nil];
+        }
+    }
+
     void offscreen_render_target::preparePostProcessingRendering(bnb::oep::interfaces::rotation orientation)
     {
         GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, m_postProcessingFramebuffer));
@@ -398,12 +424,9 @@ namespace bnb
             return;
         }
 
-//        auto width = CVPixelBufferGetWidth(m_offscreenPostProcessingPixelBuffer);
-//        auto height = CVPixelBufferGetHeight(m_offscreenPostProcessingPixelBuffer);
-        
-        auto size_tuple = getWidthHeight(orientation);
-        auto width = std::get<0>(size_tuple);
-        auto height = std::get<1>(size_tuple);
+        auto width = CVPixelBufferGetWidth(m_offscreenPostProcessingPixelBuffer);
+        auto height = CVPixelBufferGetHeight(m_offscreenPostProcessingPixelBuffer);
+
         GL_CALL(glViewport(0, 0, GLsizei(width), GLsizei(height)));
 
         GL_CALL(glActiveTexture(GLenum(GL_TEXTURE0)));
@@ -427,8 +450,8 @@ namespace bnb
             }
 
             if (m_offscreenPostProcessingPixelBuffer == nullptr) {
-                setupOffscreenPixelBuffer(m_offscreenPostProcessingPixelBuffer);
-                setupOffscreenRenderTarget(m_offscreenPostProcessingPixelBuffer, m_offscreenPostProcessingRenderTexture);
+                setupOffscreenPostProcessingPixelBuffer(orientation);
+                setupOffscreenPostProcessingRenderTarget(orientation);
             }
 
             preparePostProcessingRendering(orientation);

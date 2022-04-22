@@ -45,7 +45,7 @@
     return self;
 }
 
-- (void)processImage:(CVPixelBufferRef)pixelBuffer completion:(BNBOEPImageReadyBlock _Nonnull)completion
+- (void)processImage:(CVPixelBufferRef)pixelBuffer inputOrientation:(EPOrientation)orientation completion:(BNBOEPImageReadyBlock _Nonnull)completion
 {
     pixel_buffer_sptr pixelBuffer_sprt([self convertImage:pixelBuffer]);
     auto get_pixel_buffer_callback = [self, pixelBuffer, completion](image_processing_result_sptr result) {
@@ -67,7 +67,8 @@
         }
     };
     
-    m_oep->process_image_async(pixelBuffer_sprt, bnb::oep::interfaces::rotation::deg0, get_pixel_buffer_callback, bnb::oep::interfaces::rotation::deg180);
+    auto input_orientation = [self getInputOrientation:orientation];
+    m_oep->process_image_async(pixelBuffer_sprt, input_orientation, get_pixel_buffer_callback, bnb::oep::interfaces::rotation::deg270);
 }
 
 - (pixel_buffer_sptr)convertImage:(CVPixelBufferRef)pixelBuffer
@@ -186,6 +187,14 @@
 {
     if (m_oep) {
         m_oep->surface_changed(width, height);
+    }
+}
+- (bnb::oep::interfaces::rotation)getInputOrientation:(EPOrientation)orientation{
+    switch (orientation) {
+        case EPOrientationAngles0:      return bnb::oep::interfaces::rotation::deg0;
+        case EPOrientationAngles90:     return bnb::oep::interfaces::rotation::deg90;
+        case EPOrientationAngles180:    return bnb::oep::interfaces::rotation::deg180;
+        case EPOrientationAngles270:    return bnb::oep::interfaces::rotation::deg270;
     }
 }
 

@@ -2,6 +2,13 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <CoreVideo/CoreVideo.h>
 
+typedef NS_ENUM(NSUInteger, EPOrientation) {
+    EPOrientationAngles0,
+    EPOrientationAngles90,
+    EPOrientationAngles180,
+    EPOrientationAngles270
+};
+
 /**
  * block to return resulted image after processing
  * NOTE: pixelBuffer can be null if frame dropped because of queue or because of passed unsupported image format for target image
@@ -24,7 +31,7 @@ typedef void (^BNBOEPImageReadyBlock)(_Nullable CVPixelBufferRef pixelBuffer);
 // /**
 //  * Async processImage method
 //  */
-- (void)processImage:(CVPixelBufferRef)pixelBuffer completion:(BNBOEPImageReadyBlock _Nonnull)completion;
+- (void)processImage:(CVPixelBufferRef)pixelBuffer inputOrientation:(EPOrientation)orientation completion:(BNBOEPImageReadyBlock _Nonnull)completion;
 
 // /**
 //  * Load effect with specified name (used folder name)
