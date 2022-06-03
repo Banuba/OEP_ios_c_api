@@ -1,5 +1,9 @@
 # Quick start examples for integrating [Banuba SDK for IOS](https://docs.banuba.com/face-ar-sdk/ios/ios_overview/) in C++ apps
 
+> **Important**
+>
+>[master](../../tree/master) branch is always compatible with latest SDK version. Please use [v0.x](../../tree/v0.x) branch for SDK version 0.x (e.g. v0.38).
+
 ## Getting Started
 
 1. Get the latest Banuba SDK with C API archive for IOS and the client token. Please fill out our form at [form at banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
