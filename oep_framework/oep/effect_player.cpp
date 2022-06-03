@@ -25,6 +25,7 @@ namespace bnb::oep
         res_paths.get()[path_to_resources.size()] = nullptr;
         m_utility = bnb_utility_manager_init(res_paths.get(), client_token.c_str(), nullptr);
 
+        bnb_effect_player_set_render_backend(bnb_render_backend_opengl, nullptr);
         bnb_effect_player_configuration_t ep_cfg{1, 1, bnb_nn_mode_enable, bnb_good, false, false};
         m_ep = bnb_effect_player_create(&ep_cfg, nullptr);
         if (m_ep == nullptr) {
