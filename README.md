@@ -22,7 +22,9 @@
 
 7. The previous step will generate a Xcode project. Open the OEP_ios_c_api project in the Xcode.
 8. Select target `example_ios_c_api`.
-9. Run build.
+9. Drag&Drop BNBEffectPlayerC.framework from the Xcode Navigator to the `Project Settings->General->Frameworks, Libraries and Embedded Content` section of the target.
+10. Add you sign into the `Project Settings->Signing & Capabilities` section of the target.
+11. Run build.
 
 ## Contributing
 
