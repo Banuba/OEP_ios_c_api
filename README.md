@@ -10,7 +10,7 @@
 
     ```sh
         cd $path_to_repository
-        git submodule update --init
+        git submodule update --init --recursive
         mkdir build
         cd build
         cmake -G Xcode ..
