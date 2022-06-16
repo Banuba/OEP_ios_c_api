@@ -166,17 +166,19 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     func paintPixelBuffer(_ pixelBuffer: CVPixelBuffer?) {
-        if let resultPixelBuffer = pixelBuffer {
-            var cgImage: CGImage?
+        autoreleasepool{
+            if let resultPixelBuffer = pixelBuffer {
+                var cgImage: CGImage?
 
-            VTCreateCGImageFromCVPixelBuffer(resultPixelBuffer, nil, &cgImage)
+                VTCreateCGImageFromCVPixelBuffer(resultPixelBuffer, nil, &cgImage)
 
-            guard let cgImageSafe = cgImage else { return }
+                guard let cgImageSafe = cgImage else { return }
 
-            let image = UIImage(cgImage: cgImageSafe, scale: 1.0, orientation: .left)
+                let image = UIImage(cgImage: cgImageSafe, scale: 1.0, orientation: .left)
 
-            DispatchQueue.main.async {
-                self.imageView.image = image
+                DispatchQueue.main.async {
+                    self.imageView.image = image
+                }
             }
         }
     }
