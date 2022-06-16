@@ -53,11 +53,11 @@
             auto render_callback = [self, completion](std::optional<rendered_texture_t> texture_id) {
                 if (texture_id.has_value()) {
                     CVPixelBufferRef retBuffer = (CVPixelBufferRef)texture_id.value();
-                    
-                    retBuffer = [self processOutputInBGRA:retBuffer];
 
                     if (completion) {
-                        completion(retBuffer);
+                        CVPixelBufferRef retBufferConverted = [self processOutputInBGRA:retBuffer];
+                        completion(retBufferConverted);
+                        CVPixelBufferRelease(retBufferConverted);
                     }
 
                     CVPixelBufferRelease(retBuffer);
