@@ -6,6 +6,8 @@
 #include "effect_player.hpp"
 #include "offscreen_render_target.h"
 
+#include <bnb/utility_manager.h>
+
 @implementation BNBOffscreenEffectPlayer
 {
     NSUInteger _width;
@@ -14,6 +16,8 @@
     effect_player_sptr m_ep;
     offscreen_render_target_sptr m_ort;
     offscreen_effect_player_sptr m_oep;
+
+    utility_manager_holder_t* m_utility;
 }
 
 - (id)init
@@ -32,12 +36,16 @@
     _width = width;
     _height = height;
 
-    std::vector<std::string> paths;
+    std::vector<std::string> path_to_resources;
     for (id object in resourcePaths) {
-        paths.push_back(std::string([(NSString*)object UTF8String]));
+        path_to_resources.push_back(std::string([(NSString*)object UTF8String]));
     }
+    std::unique_ptr<const char*[]> res_paths = std::make_unique<const char*[]>(path_to_resources.size() + 1);
+    std::transform(path_to_resources.begin(), path_to_resources.end(), res_paths.get(), [](const auto& s) { return s.c_str(); });
+    res_paths.get()[path_to_resources.size()] = nullptr;
+    m_utility = bnb_utility_manager_init(res_paths.get(), [token UTF8String], nullptr);
 
-    m_ep = bnb::oep::effect_player::create(paths, std::string([token UTF8String]));
+    m_ep = bnb::oep::effect_player::create(width, height);
     m_ort = std::make_shared<bnb::offscreen_render_target>();
     m_oep = bnb::oep::interfaces::offscreen_effect_player::create(m_ep, m_ort, width, height);
     
@@ -68,7 +76,7 @@
     };
     
     auto input_orientation = [self getInputOrientation:orientation];
-    m_oep->process_image_async(pixelBuffer_sprt, input_orientation, get_pixel_buffer_callback, bnb::oep::interfaces::rotation::deg270);
+    m_oep->process_image_async(pixelBuffer_sprt, input_orientation, true, get_pixel_buffer_callback, bnb::oep::interfaces::rotation::deg270);
 }
 
 - (pixel_buffer_sptr)convertImage:(CVPixelBufferRef)pixelBuffer
@@ -180,6 +188,10 @@
 {
     if (m_ep) {
         m_ep->surface_destroyed();
+    }
+    if (m_utility) {
+        bnb_utility_manager_release(m_utility, nullptr);
+        m_utility = nullptr;
     }
 }
 

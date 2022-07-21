@@ -12,19 +12,14 @@ namespace bnb::oep
 {
 
     /* effect_player::create */
-    effect_player_sptr interfaces::effect_player::create(const std::vector<std::string>& path_to_resources, const std::string& client_token)
+    effect_player_sptr interfaces::effect_player::create(int32_t width, int32_t height)
     {
-        return std::make_shared<bnb::oep::effect_player>(path_to_resources, client_token);
+        return std::make_shared<bnb::oep::effect_player>(width, height);
     }
 
     /* effect_player::effect_player CONSTRUCTOR */
-    effect_player::effect_player(const std::vector<std::string>& path_to_resources, const std::string& client_token)
+    effect_player::effect_player(int32_t width, int32_t height)
     {
-        std::unique_ptr<const char*[]> res_paths = std::make_unique<const char*[]>(path_to_resources.size() + 1);
-        std::transform(path_to_resources.begin(), path_to_resources.end(), res_paths.get(), [](const auto& s) { return s.c_str(); });
-        res_paths.get()[path_to_resources.size()] = nullptr;
-        m_utility = bnb_utility_manager_init(res_paths.get(), client_token.c_str(), nullptr);
-
         bnb_effect_player_set_render_backend(bnb_render_backend_opengl, nullptr);
         bnb_effect_player_configuration_t ep_cfg{1, 1, bnb_nn_mode_enable, bnb_good, false, false};
         m_ep = bnb_effect_player_create(&ep_cfg, nullptr);
@@ -41,10 +36,6 @@ namespace bnb::oep
         if (m_ep) {
             bnb_effect_player_destroy(m_ep, nullptr);
             m_ep = nullptr;
-        }
-        if (m_utility) {
-            bnb_utility_manager_release(m_utility, nullptr);
-            m_utility = nullptr;
         }
     }
 
@@ -96,6 +87,10 @@ namespace bnb::oep
         return true;
     }
 
+    void effect_player::eval_js(const std::string& script, oep_eval_js_result_cb result_callback){
+        std::cout << "[Error] eval_js is not implemented" << std::endl;
+    }
+
     /* effect_player::pause */
     void effect_player::pause()
     {
@@ -108,13 +103,16 @@ namespace bnb::oep
         bnb_effect_player_playback_play(m_ep, nullptr);
     }
 
+    void effect_player::stop(){
+        bnb_effect_player_playback_stop(m_ep, nullptr);
+    }
+
     /* effect_player::push_frame */
-    void effect_player::push_frame(pixel_buffer_sptr image, bnb::oep::interfaces::rotation image_orientation)
+    void effect_player::push_frame(pixel_buffer_sptr image, bnb::oep::interfaces::rotation image_orientation, bool require_mirroring)
     {
         full_image_holder_t * bnb_image {nullptr};
 
         using ns = bnb::oep::interfaces::image_format;
-        bool require_mirroring = true;
         auto bnb_image_format = make_bnb_image_format(image, image_orientation, require_mirroring);
         switch (image->get_image_format()) {
             case ns::bpc8_rgb:
