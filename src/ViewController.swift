@@ -65,7 +65,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     private func initBNBOffscreenEffectPlayer(width: UInt, height: UInt, manualAudio: Bool) {
-        let dirs = [ Bundle.main.bundlePath + "/bnb-resources", Bundle.main.bundlePath + "/effects"]
+        let dirs = [ Bundle.main.bundlePath + "/effects", Bundle.main.bundlePath + "/Frameworks/BNBEffectPlayerC.framework/bnb-resources"]
         
         effectPlayer = BNBOffscreenEffectPlayer.init(width: width, height: height, manualAudio: manualAudio, token: <#Place your token here#>, resourcePaths: dirs)
     }
