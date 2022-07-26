@@ -46,9 +46,7 @@ set(APP_SOURCE_FILES
 set(RESOURCES
     ${BNB_RESOURCES_FOLDER}/Main.storyboard
     ${BNB_RESOURCES_FOLDER}/LaunchScreen.storyboard
-    ${BNB_RESOURCES_FOLDER}/bnb_viewer.icns
     ${BNB_RESOURCES_FOLDER}/effects
-    ${BNB_RESOURCES_FOLDER}/bnb-resources
 )
 
 set(CMAKE_XCODE_GENERATE_SCHEME YES)
