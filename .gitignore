@@ -2,3 +2,4 @@ rebuild.sh
 .DS_Store
 /build
 /bnb_sdk_c_api/BNBEffectPlayerC.xcframework
+/bnb_sdk_c_api/VERSION
