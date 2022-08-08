@@ -310,6 +310,7 @@ namespace bnb
 
     pixel_buffer_sptr offscreen_render_target::read_current_buffer(bnb::oep::interfaces::image_format format)
     {
+        // Not implemented. See conversion in BNBOffscreenEffectPlayer.
         return nullptr;
     }
 
