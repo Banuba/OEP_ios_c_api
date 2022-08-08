@@ -72,7 +72,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     private func loadEffect() {
         loadingEffect = true
-        effectPlayer?.loadEffect("blur_bg")
+        effectPlayer?.loadEffect(<#place your effect here#>)
     }
     
     private func setUpCamera() {
