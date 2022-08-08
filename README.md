@@ -5,7 +5,7 @@
 1. Get the latest Banuba SDK with C API archive for IOS and the client token. Please fill out our form at [form at banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
 2. Extract BNBEffectPlayerC-iosXCFrameworksArchive archive into the `OEP_ios_c_api/bnb_sdk_c_api` dir:
     `BNBEffectPlayerC-iosXCFrameworksArchive` => `OEP_ios_c_api/bnb_sdk_c_api`
-3. Copy and Paste your client token into the appropriate section of `OEP_ios_c_api/ViewController.swift`
+3. Donwload desired effects from [here](https://docs.banuba.com/face-ar-sdk/overview/demo_face_filters) and put them into the following folder: `OEP_ios_c_api/resources/effects`.
 4. Generate project files by executing the following commands:
 
     ```sh
@@ -16,11 +16,12 @@
         cmake -G Xcode ..
     ```
 
-7. The previous step will generate a Xcode project. Open the OEP_ios_c_api project in the Xcode.
-8. Select target `example_ios_c_api`.
-9. Drag&Drop BNBEffectPlayerC.framework from the Xcode Navigator to the `Project Settings->General->Frameworks, Libraries and Embedded Content` section of the target.
-10. Add you sign into the `Project Settings->Signing & Capabilities` section of the target.
-11. Run build.
+5. The previous step will generate a Xcode project. Open the OEP_ios_c_api project in the Xcode.
+6. Copy and Paste your client token into the appropriate section of `OEP_ios_c_api/ViewController.swift`. Add the downloaded effect's name in the same file.
+7. Select target `example_ios_c_api`.
+8. Drag&Drop BNBEffectPlayerC.framework from the Xcode Navigator to the `Project Settings->General->Frameworks, Libraries and Embedded Content` section of the target.
+9. Add you sign into the `Project Settings->Signing & Capabilities` section of the target.
+10. Run build.
 
 ## Contributing
 
