@@ -1,5 +1,7 @@
 rebuild.sh
 .DS_Store
+.idea/
 /build
 /bnb_sdk_c_api/BNBEffectPlayerC.xcframework
 /bnb_sdk_c_api/VERSION
+/resources/effects/**/

@@ -26,8 +26,10 @@ namespace bnb::oep
         if (m_ep == nullptr) {
             throw std::runtime_error("Failed to create effect player holder.");
         }
-
+        
+        // for measures we set fixed value 10 microseconds
         optimal_time_to_sleep_on_rendering_us = get_optimal_time_to_sleep_on_rendering_us();
+//        optimal_time_to_sleep_on_rendering_us = 10;
     }
 
     /* effect_player::~effect_player */

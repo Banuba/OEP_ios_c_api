@@ -3,6 +3,10 @@
 #include "opengl.hpp"
 #include "utils.h"
 
+#include <vector>
+
+#include <opengl/program.hpp>
+
 namespace bnb
 {
 
@@ -310,8 +314,68 @@ namespace bnb
 
     pixel_buffer_sptr offscreen_render_target::read_current_buffer(bnb::oep::interfaces::image_format format)
     {
+        activate_context();
+        using ns = bnb::oep::interfaces::image_format;
+        switch (format) {
+            case ns::i420_bt601_full:
+            case ns::i420_bt601_video:
+            case ns::i420_bt709_full:
+            case ns::i420_bt709_video:
+                return read_current_buffer_i420(format);
+                break;
+            default:
+                return nullptr;
+        }
+        
         // Not implemented. See conversion in BNBOffscreenEffectPlayer.
         return nullptr;
+    }
+    
+    /* offscreen_render_target::read_current_buffer_i420 */
+    pixel_buffer_sptr offscreen_render_target::read_current_buffer_i420(bnb::oep::interfaces::image_format format_hint)
+    {
+        using ns = bnb::oep::interfaces::image_format;
+        using ns_cvt = bnb::oep::converter::yuv_converter;
+        ns_cvt::standard std{ns_cvt::standard::bt601};
+        ns_cvt::range rng{ns_cvt::range::full_range};
+
+        if (m_yuv_i420_converter == nullptr) {
+            m_yuv_i420_converter = std::make_unique<bnb::oep::converter::yuv_converter>();
+            m_yuv_i420_converter->set_drawing_orientation(ns_cvt::rotation::deg_0, true);
+        }
+        m_yuv_i420_converter->set_convert_standard(std, rng);
+
+        auto do_nothing_deleter_uint8 = [](uint8_t*) { /* DO NOTHING */ };
+        auto default_deleter_uint8 = std::default_delete<uint8_t>();
+
+        ns_cvt::yuv_data i420_planes_data;
+        /* allocate needed memory for store */
+        int32_t clamped_width = (m_width + 7) & ~7; /* alhoritm specific */
+        i420_planes_data.size = m_yuv_i420_converter->calc_min_yuv_data_size(m_width, m_height);
+        i420_planes_data.data = std::shared_ptr<uint8_t>(new uint8_t[i420_planes_data.size], do_nothing_deleter_uint8);
+
+        /* convert to i420 */
+        uint32_t gl_texture = CVOpenGLESTextureGetName(m_offscreenRenderTexture);
+//        uint32_t gl_texture = static_cast<uint32_t>(reinterpret_cast<uint64_t>(get_current_buffer_texture()));
+        m_yuv_i420_converter->convert(gl_texture, m_width, m_height, i420_planes_data);
+
+//        /* save data */
+        using ns_pb = bnb::oep::interfaces::pixel_buffer;
+        ns_pb::plane_sptr y_plane_data(i420_planes_data.y_plane_data, do_nothing_deleter_uint8);
+        ns_pb::plane_sptr u_plane_data(i420_planes_data.u_plane_data, do_nothing_deleter_uint8);
+        ns_pb::plane_sptr v_plane_data(i420_planes_data.v_plane_data, do_nothing_deleter_uint8);
+        size_t y_plane_size(static_cast<size_t>(i420_planes_data.u_plane_data - i420_planes_data.y_plane_data));
+        size_t v_u_planes_diff(static_cast<size_t>(i420_planes_data.v_plane_data - i420_planes_data.u_plane_data));
+        size_t u_plane_size(i420_planes_data.size - y_plane_size - v_u_planes_diff);
+        size_t v_plane_size(u_plane_size);
+        ns_pb::plane_data y_plane{y_plane_data, y_plane_size, i420_planes_data.y_plane_stride};
+        ns_pb::plane_data u_plane{u_plane_data, u_plane_size, i420_planes_data.u_plane_stride};
+        ns_pb::plane_data v_plane{v_plane_data, v_plane_size, i420_planes_data.v_plane_stride};
+
+        std::vector<ns_pb::plane_data> planes{y_plane, u_plane, v_plane};
+
+        return ns_pb::create(planes, format_hint, clamped_width, m_height, [default_deleter_uint8](auto* pb) { default_deleter_uint8(pb->get_base_sptr().get()); });
+        
     }
 
     rendered_texture_t offscreen_render_target::get_current_buffer_texture() {
