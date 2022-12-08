@@ -2,6 +2,11 @@ import UIKit
 import AVFoundation
 import VideoToolbox
 
+enum ImageFormat: String {
+    case i420 = "i420"
+    case NV12 = "NV12"
+};
+
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     @IBOutlet weak var imageView: UIImageView!
@@ -17,7 +22,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private let cameraPreset: AVCaptureSession.Preset = .hd1280x720
     private var renderWidth: UInt = 720
     private var renderHeight: UInt = 1280
-    private var loadingEffect = false
+    private var loadingEffect = true
+    private var imageFormat = ImageFormat.i420
     //private var resultedImageOrientation: bnb::oep::interfaces::rotation = .deg0
     private var uiOrientation: UIInterfaceOrientation = .portrait
     
@@ -67,12 +73,13 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private func initBNBOffscreenEffectPlayer(width: UInt, height: UInt, manualAudio: Bool) {
         let dirs = [ Bundle.main.bundlePath + "/effects", Bundle.main.bundlePath + "/Frameworks/BNBEffectPlayerC.framework/bnb-resources"]
         
-        effectPlayer = BNBOffscreenEffectPlayer.init(width: width, height: height, manualAudio: manualAudio, token: <#Place your token here#>, resourcePaths: dirs)
+        effectPlayer = BNBOffscreenEffectPlayer.init(width: width, height: height, manualAudio: manualAudio, token: <#Place your banuba token here#>, resourcePaths: dirs)
     }
     
     private func loadEffect() {
-        loadingEffect = true
-        effectPlayer?.loadEffect(<#place your effect here#>)
+        if(loadingEffect) {
+            effectPlayer?.loadEffect("blur_bg")
+        }
     }
     
     private func setUpCamera() {
@@ -185,15 +192,19 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-
+        guard var imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        if(imageFormat == ImageFormat.i420) {
+            let converter = Converter();
+            imageBuffer = converter.convertTo420(imageBuffer).takeUnretainedValue();
+        }
+        
         if (self.loadingEffect) {
             let orientation = getImageOrientation()
-            effectPlayer?.processImage(imageBuffer, inputOrientation: orientation, completion: { [weak self] (resPixelBuffer) in
+            effectPlayer?.processImage(imageBuffer, imageFormat: imageFormat.rawValue, inputOrientation: orientation,
+                                       completion: { [weak self] (resPixelBuffer) in
                 self?.paintPixelBuffer(resPixelBuffer)
             })
-        }
-        else {
+        } else {
             paintPixelBuffer(imageBuffer)
         }
     }

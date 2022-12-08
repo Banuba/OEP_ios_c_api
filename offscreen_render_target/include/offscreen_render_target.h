@@ -12,6 +12,8 @@
 
 #import <CoreMedia/CoreMedia.h>
 
+#include <opengl/yuv_converter.hpp>
+
 namespace bnb
 {
     class ort_frame_surface_handler;
@@ -34,6 +36,7 @@ class offscreen_render_target : public oep::interfaces::offscreen_render_target
         rendered_texture_t get_current_buffer_texture() override;
 
     private:
+        pixel_buffer_sptr read_current_buffer_i420(bnb::oep::interfaces::image_format format_hint);
         void setupRenderBuffers();
         void cleanupRenderBuffers();
 
@@ -73,5 +76,6 @@ class offscreen_render_target : public oep::interfaces::offscreen_render_target
         std::unique_ptr<ort_frame_surface_handler> m_frameSurfaceHandler;
         
         bnb::oep::interfaces::rotation m_prev_orientation{0};
+        std::unique_ptr<bnb::oep::converter::yuv_converter> m_yuv_i420_converter;
     };
 } // bnb

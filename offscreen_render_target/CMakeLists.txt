@@ -23,8 +23,8 @@ target_include_directories(offscreen_rt PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(offscreen_rt
     # glad
     ogl_utils
-    GLESv3
-    EGL
+    bnb_oep_opengl_program_target
+    bnb_oep_opengl_yuv_converter_target
 )
 
 target_include_directories(offscreen_rt PRIVATE "${PROJECT_SOURCE_DIR}/bnb_sdk_c_api/BNBEffectPlayerC.xcframework/ios-arm64/BNBEffectPlayerC.framework/Headers")
