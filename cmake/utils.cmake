@@ -71,23 +71,3 @@ endfunction()
 function(set_target_folder target folder)
     set_target_properties(${target} PROPERTIES FOLDER ${folder})
 endfunction()
-
-function(create_linking_flags result target)
-    set(linking_flags "")
-    get_target_property(dependency ${target} LINK_LIBRARIES)
-    foreach(item ${dependency})
-        if(TARGET ${item})
-            get_target_property(type ${item} TYPE)
-            if(NOT ${type} STREQUAL "INTERFACE_LIBRARY")
-                set(linking_flags "${linking_flags} -l${item} -L$<TARGET_FILE_DIR:${item}>-iphoneos")
-
-                set(deeper_linking_flags "")
-                create_linking_flags(deeper_linking_flags ${item})
-                set(linking_flags "${linking_flags} ${deeper_linking_flags}")
-            endif()
-        endif()
-    endforeach()
-
-    # return values
-    set(${result} ${linking_flags} PARENT_SCOPE)
-endfunction()

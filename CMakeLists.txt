@@ -96,8 +96,8 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 target_link_libraries(${APP_NAME}
-    "-framework ${BANUBA_OEP_FRAMEWORK}"
     bnb_effect_player
+    banuba_oep
     "-framework Accelerate"
     "-framework UIKit"
     "-framework Foundation"
@@ -108,7 +108,5 @@ target_link_libraries(${APP_NAME}
 
 set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_FRAMEWORK_SEARCH_PATHS "${FullEPFrameworkPath}")
 set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_HEADER_SEARCH_PATHS "$<TARGET_FILE_DIR:${BANUBA_OEP_FRAMEWORK}>/ios-arm64/${BANUBA_OEP_FRAMEWORK}.framework/Headers")
-set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_OTHER_LDFLAGS "-F$<TARGET_FILE_DIR:${BANUBA_OEP_FRAMEWORK}>-iphoneos -lc++")
 set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
-
- target_link_libraries(${APP_NAME} ${OTHER_LDFLAGS})
+set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks")

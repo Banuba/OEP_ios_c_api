@@ -21,11 +21,7 @@ target_include_directories(offscreen_rt PUBLIC
 target_include_directories(offscreen_rt PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(offscreen_rt
-    # glad
     ogl_utils
-    GLESv3
-    EGL
 )
 
 target_include_directories(offscreen_rt PRIVATE "${PROJECT_SOURCE_DIR}/bnb_sdk_c_api/BNBEffectPlayerC.xcframework/ios-arm64/BNBEffectPlayerC.framework/Headers")
-set_target_properties(offscreen_rt PROPERTIES XCODE_ATTRIBUTE_OTHER_LIBTOOLFLAGS "-logl_utils -L${CMAKE_BINARY_DIR}/libraries/utils/ogl_utils/$(CONFIGURATION)-iphoneos")
