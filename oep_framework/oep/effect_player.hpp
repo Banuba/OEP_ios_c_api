@@ -34,16 +34,15 @@ namespace bnb::oep
 
         void push_frame(pixel_buffer_sptr image, bnb::oep::interfaces::rotation image_orientation, bool require_mirroring) override;
 
-        void draw() override;
+        int64_t draw() override;
 
     private:
         bnb_image_format_t make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring);
         bnb_pixel_format_t make_bnb_pixel_format(pixel_buffer_sptr image);
-        int32_t get_optimal_time_to_sleep_on_rendering_us();
-        int32_t optimal_time_to_sleep_on_rendering_us;
 
     private:
-        effect_player_holder_t * m_ep {nullptr};
+        effect_player_holder_t* m_ep {nullptr};
+        frame_processor_t* m_fp {nullptr};
     }; /* class effect_player */
 
 } /* namespace bnb::oep */

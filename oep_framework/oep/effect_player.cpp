@@ -8,6 +8,17 @@
 #include <map>
 #include <sys/utsname.h>
 
+namespace  {
+    void check_error(bnb_error* e)
+    {
+        if (e) {
+            std::string msg = bnb_error_get_message(e);
+            bnb_error_destroy(e);
+            throw std::runtime_error(msg);
+        }
+    }
+};
+
 namespace bnb::oep
 {
 
@@ -26,8 +37,19 @@ namespace bnb::oep
         if (m_ep == nullptr) {
             throw std::runtime_error("Failed to create effect player holder.");
         }
-
-        optimal_time_to_sleep_on_rendering_us = get_optimal_time_to_sleep_on_rendering_us();
+        
+        bnb_error* error = nullptr;
+        
+        auto config = bnb_processor_configuration_create(nullptr);
+        
+        bnb_processor_configuration_set_use_future_filter(config, false, nullptr);
+        m_fp = bnb_frame_processor_create_realtime_processor(bnb_realtime_processor_mode_sync, config, &error);
+        check_error(error);
+        
+        bnb_effect_player_set_frame_processor(m_ep, m_fp, &error);
+        check_error(error);
+        
+        bnb_processor_configuration_destroy(config, nullptr);
     }
 
     /* effect_player::~effect_player */
@@ -36,6 +58,10 @@ namespace bnb::oep
         if (m_ep) {
             bnb_effect_player_destroy(m_ep, nullptr);
             m_ep = nullptr;
+        }
+        if (m_fp) {
+            bnb_frame_processor_destroy(m_fp, nullptr);
+            m_fp = nullptr;
         }
     }
 
@@ -164,30 +190,37 @@ namespace bnb::oep
         }
 
         bnb_error * error{nullptr};
-        bnb_effect_player_push_frame(m_ep, bnb_image, &error);
-        if (error) {
-            bnb_full_image_release(bnb_image, nullptr);
-            std::string msg = bnb_error_get_message(error);
-            bnb_error_destroy(error);
-            throw std::runtime_error(msg);
-        }
+        auto fd = bnb_frame_data_init(&error);
+        check_error(error);
+        
+        bnb_frame_data_add_full_img(fd, bnb_image, &error);
+        check_error(error);
+        
+        bnb_frame_processor_push(m_fp, fd, &error);
+        check_error(error);
 
+        bnb_frame_data_release(fd, nullptr);
         bnb_full_image_release(bnb_image, nullptr);
     }
 
     /* effect_player::draw */
-    void effect_player::draw()
+    int64_t effect_player::draw()
     {
         bnb_error * error{nullptr};
-        while (bnb_effect_player_draw(m_ep, &error) < 0) {
-            std::this_thread::yield();
-            std::this_thread::sleep_for(std::chrono::microseconds(optimal_time_to_sleep_on_rendering_us));
+        int64_t ret = -1;
+         
+        auto result = bnb_frame_processor_pop(m_fp, &error);
+        check_error(error);
+        if (result.status != bnb_processor_status_ok) {
+            bnb_frame_data_release(result.frame_data, nullptr);
+            return -1;
         }
-        if (error) {
-            std::string msg = bnb_error_get_message(error);
-            bnb_error_destroy(error);
-            throw std::runtime_error(msg);
-        }
+        
+        ret = bnb_effect_player_draw_with_external_frame_data(m_ep, result.frame_data, &error);
+    
+        bnb_frame_data_release(result.frame_data, nullptr);
+        
+        check_error(error);
     }
 
     /* effect_player::make_bnb_image_format */
@@ -236,51 +269,4 @@ namespace bnb::oep
         }
         return fmt;
     }
-
-    // We use sleep_for() function to wait for the result of effect_player.draw().
-    // The best time for this function depends on the power of the iPhone.
-    // So we have to choose the optimal time according to the model of the device.
-    int32_t effect_player::get_optimal_time_to_sleep_on_rendering_us(){
-        int32_t timeForA9 = 35;
-        int32_t timeForA10 = 25;
-        int32_t timeForA11 = 25;
-        int32_t timeForA12 = 10;
-
-        using namespace std::literals::string_literals;
-
-        // https://stackoverflow.com/questions/11197509/how-to-get-device-make-and-model-on-ios
-        std::map<std::string, int> machines = {
-            {"iPhone6,1"s, timeForA9},   // iPhone5S (model A1433, A1533 | GSM)
-            {"iPhone6,2"s, timeForA9},   // iPhone5S (model A1457, A1518, A1528 (China), A1530 | Global)
-            {"iPhone7,1"s, timeForA9},   // iPhone6 Plus          A8
-            {"iPhone7,2"s, timeForA9},   // iPhone6               A8
-            {"iPhone8,1"s, timeForA9},   // iPhone 6s             A9
-            {"iPhone8,2"s, timeForA9},   // iPhone 6s Plus        A9
-            {"iPhone8,4"s, timeForA9},   // iPhone SE (GSM)       A9
-            {"iPhone9,1"s, timeForA10},  // iPhone7              A10
-            {"iPhone9,2"s, timeForA10},  // iPhone7 Plus         A10
-            {"iPhone9,3"s, timeForA10},  // iPhone7              A10
-            {"iPhone9,4"s, timeForA10},  // iPhone7 Plus         A10
-            {"iPhone10,1"s, timeForA11}, // iPhone 8            A11
-            {"iPhone10,2"s, timeForA11}, // iPhone 8 Plus       A11
-            {"iPhone10,3"s, timeForA11}, // iPhone X Global     A11
-            {"iPhone10,4"s, timeForA11}, // iPhone 8            A11
-            {"iPhone10,5"s, timeForA11}, // iPhone 8 Plus       A11
-            {"iPhone10,6"s, timeForA11}, // iPhone X GSM        A11
-            {"iPhone11,2"s, timeForA12}, // iPhone XS           A12
-            {"iPhone11,4"s, timeForA12}, // iPhone XS Max       A12
-            {"iPhone11,6"s, timeForA12}, // iPhone XS Max China A12
-            {"iPhone11,8"s, timeForA12}  // iPhone XR           A12
-        };
-
-        struct utsname system_info;
-        uname(&system_info);
-        auto machine = machines.find(system_info.machine);
-        if (machine != machines.end()) {
-            return machine->second;
-        } else {
-            return timeForA12;
-        }
-    }
-
 } /* namespace bnb::oep */
