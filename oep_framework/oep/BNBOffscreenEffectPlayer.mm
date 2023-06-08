@@ -61,39 +61,23 @@
         return;
     }
 
-    auto get_pixel_buffer_callback = [ pixelBuffer, completion](image_processing_result_sptr result) {
+    auto get_pixel_buffer_callback = [pixelBuffer, completion](image_processing_result_sptr result) {
         if (result != nullptr) {
             OSType pixelFormatType = CVPixelBufferGetPixelFormatType(pixelBuffer);
-            auto render_callback = [ pixelFormatType, completion](std::optional<rendered_texture_t> texture_id) {
+            auto render_callback = [pixelFormatType, completion](std::optional<rendered_texture_t> texture_id) {
                 if (texture_id.has_value()) {
                     CVPixelBufferRef textureBuffer = (CVPixelBufferRef)texture_id.value();
 
-                    // Perform conversion of texture (its type BGRA) which contains RGBA data to the source image format
                     CVPixelBufferRef returnedBuffer = nullptr;
-                    switch (pixelFormatType) {
-                        case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
-                            returnedBuffer = bnb::convertBGRAtoNV12(textureBuffer, bnb::vrange::video_range);
-                            break;
-                        case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
-                            returnedBuffer = bnb::convertBGRAtoNV12(textureBuffer, bnb::vrange::full_range);
-                            break;
-                        case kCVPixelFormatType_420YpCbCr8Planar:
-                            [[fallthrough]];
-                        case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
-                            [[fallthrough]];
-                        case kCVPixelFormatType_32BGRA:
-                            returnedBuffer = bnb::convertBGRAtoRGBA(textureBuffer);
-                            break;
-                        default:
-                            // Frame dropped: unsupported target pixel format.
-                            break;
-                    }
+
+                    returnedBuffer = bnb::convertBGRAtoRGBA(textureBuffer);
+
                     CVPixelBufferRelease(textureBuffer);
 
                     if (completion) {
                         completion(returnedBuffer);
-                        CVPixelBufferRelease(returnedBuffer);
                     }
+                     CVPixelBufferRelease(returnedBuffer);
                 }
             };
             result->get_texture(render_callback);
